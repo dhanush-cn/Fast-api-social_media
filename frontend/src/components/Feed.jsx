@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPostsApi, createPostApi, voteApi, deletePostApi } from '../api';
+import { getPostsApi, createPostApi, voteApi, deletePostApi, API_BASE_URL } from '../api';
 import { CreatePostCard } from './CreatePostCard';
 import { PostCard } from './PostCard';
 import { RefreshCw, TrendingUp, Sparkles, Flame, Search, AlertCircle } from 'lucide-react';
@@ -20,7 +20,7 @@ export const Feed = ({ onOpenChatWithUser }) => {
       setPosts(data || []);
     } catch (err) {
       console.error('Error fetching posts:', err);
-      setError('Could not connect to FastAPI server at http://localhost:8000. Ensure the backend server is running.');
+      setError(`Could not connect to FastAPI server at ${API_BASE_URL}. Ensure the backend server is running.`);
     } finally {
       setLoading(false);
       setRefreshing(false);
