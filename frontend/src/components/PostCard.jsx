@@ -10,9 +10,10 @@ export const PostCard = ({ item, onVote, onDeletePost, onDirectMessage }) => {
 
   const post = item.Post || item;
   const initialVotes = item.votes !== undefined ? item.votes : 0;
+  const initialHasVoted = item.user_voted || false;
 
   const [votesCount, setVotesCount] = useState(initialVotes);
-  const [hasVoted, setHasVoted] = useState(false);
+  const [hasVoted, setHasVoted] = useState(initialHasVoted);
   const [isVoting, setIsVoting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -43,10 +44,13 @@ export const PostCard = ({ item, onVote, onDeletePost, onDirectMessage }) => {
 
     try {
       const res = await onVote(post.id, 1);
-      const isVotedNow = res?.voted !== undefined ? res.voted : !hasVoted;
-      setHasVoted(isVotedNow);
-      setVotesCount((prev) => (isVotedNow ? prev + 1 : Math.max(0, prev - 1)));
-      addToast(isVotedNow ? 'Post upvoted!' : 'Upvote removed', isVotedNow ? 'success' : 'info');
+      if (res && typeof res.total_votes === 'number') {
+        setVotesCount(res.total_votes);
+      }
+      if (res && typeof res.voted === 'boolean') {
+        setHasVoted(res.voted);
+        addToast(res.voted ? 'Post upvoted!' : 'Upvote removed', res.voted ? 'success' : 'info');
+      }
     } catch (err) {
       console.error('Vote error:', err);
     } finally {

@@ -2,6 +2,7 @@
 from .. import models, schemas, oauth2
 from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..database import get_db
 
 router = APIRouter(prefix="/vote", tags=["Vote"])
@@ -24,18 +25,30 @@ def vote(
 
     if vote.dir == 1:
         if found_vote:
-            # If user already voted, toggle off (unlike)
+            # Already voted -> remove vote (unlike)
             vote_query.delete(synchronize_session=False)
             db.commit()
-            return {"message": "Vote removed", "voted": False}
+            action = "removed"
+            is_voted = False
         else:
             # Add vote (like)
             new_vote = models.Vote(post_id=vote.post_id, user_id=current_user.id)
             db.add(new_vote)
             db.commit()
-            return {"message": "Vote added", "voted": True}
+            action = "added"
+            is_voted = True
     else:
         if found_vote:
             vote_query.delete(synchronize_session=False)
             db.commit()
-        return {"message": "Vote removed", "voted": False}
+        action = "removed"
+        is_voted = False
+
+    # Calculate exact total distinct votes for this post
+    total_votes = db.query(func.count(models.Vote.post_id)).filter(models.Vote.post_id == vote.post_id).scalar() or 0
+
+    return {
+        "message": f"Vote {action}",
+        "voted": is_voted,
+        "total_votes": total_votes
+    }
