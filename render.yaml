@@ -1,22 +1,11 @@
-# Render Infrastructure-as-Code Blueprint
 services:
   # 1. FastAPI Backend Web Service
   - type: web
     name: fastapi-social-backend
-    runtime: python
+    env: python
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATABASE_HOSTNAME
-        sync: false
-      - key: DATABASE_PORT
-        value: "5432"
-      - key: DATABASE_PASSWORD
-        sync: false
-      - key: DATABASE_NAME
-        sync: false
-      - key: DATABASE_USERNAME
-        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
@@ -27,7 +16,7 @@ services:
   # 2. React Static Site Frontend
   - type: web
     name: fastapi-social-frontend
-    runtime: static
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
@@ -36,4 +25,4 @@ services:
         fromService:
           type: web
           name: fastapi-social-backend
-          property: url
+          property: host
