@@ -41,23 +41,14 @@ export const PostCard = ({ item, onVote, onDeletePost, onDirectMessage }) => {
     if (isVoting) return;
     setIsVoting(true);
 
-    const nextVotedState = !hasVoted;
-    const dir = nextVotedState ? 1 : 0;
-
-    // Optimistic Update
-    setHasVoted(nextVotedState);
-    setVotesCount((prev) => (nextVotedState ? prev + 1 : Math.max(0, prev - 1)));
-
     try {
-      await onVote(post.id, dir);
-      addToast(nextVotedState ? 'Post upvoted!' : 'Upvote removed', nextVotedState ? 'success' : 'info');
+      const res = await onVote(post.id, 1);
+      const isVotedNow = res?.voted !== undefined ? res.voted : !hasVoted;
+      setHasVoted(isVotedNow);
+      setVotesCount((prev) => (isVotedNow ? prev + 1 : Math.max(0, prev - 1)));
+      addToast(isVotedNow ? 'Post upvoted!' : 'Upvote removed', isVotedNow ? 'success' : 'info');
     } catch (err) {
-      if (err.response?.status === 409) {
-        setHasVoted(true);
-      } else {
-        setHasVoted(!nextVotedState);
-        setVotesCount((prev) => (nextVotedState ? Math.max(0, prev - 1) : prev + 1));
-      }
+      console.error('Vote error:', err);
     } finally {
       setIsVoting(false);
     }
