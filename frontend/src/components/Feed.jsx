@@ -37,7 +37,7 @@ export const Feed = ({ onOpenChatWithUser }) => {
   };
 
   const handleVote = async (postId, dir) => {
-    await voteApi(postId, dir);
+    return await voteApi(postId, dir);
   };
 
   const handleDeletePost = async (postId) => {
